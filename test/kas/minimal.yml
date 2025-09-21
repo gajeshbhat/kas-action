@@ -1,0 +1,14 @@
+header:
+  version: 14
+
+machine: qemux86-64
+distro: poky
+target: core-image-minimal
+
+repos:
+  poky:
+    url: https://git.yoctoproject.org/poky
+    branch: kirkstone
+    layers:
+      meta:
+      meta-poky:

@@ -1,0 +1,72 @@
+name: 'Kas Action'
+description: 'Build Yocto/OpenEmbedded projects using Siemens kas with optimized caching and CI integration'
+author: 'gajeshbhat'
+
+branding:
+  icon: 'package'
+  color: 'blue'
+
+inputs:
+  # Core kas inputs
+  kas_file:
+    description: 'Space-separated kas YAML files (e.g., "kas.yml overlay.yml")'
+    required: true
+  
+  kas_tag:
+    description: 'Kas container tag to use from ghcr.io/siemens/kas/kas'
+    required: false
+    default: 'latest'
+  
+  kas_cmd:
+    description: 'Kas command to run (build, shell, checkout, dump, for-all-repos, list-targets, menu)'
+    required: false
+    default: 'build'
+  
+  kas_args:
+    description: 'Additional arguments passed to kas command'
+    required: false
+    default: ''
+  
+  bitbake_args:
+    description: 'Arguments passed to bitbake (appended after "--" for build/shell commands)'
+    required: false
+    default: ''
+
+  # Caching configuration
+  dl_dir:
+    description: 'Download directory for source files (relative to workspace)'
+    required: false
+    default: 'dl_cache'
+  
+  sstate_dir:
+    description: 'Shared state cache directory (relative to workspace)'
+    required: false
+    default: 'sstate_cache'
+
+  # Build optimization
+  parallelism:
+    description: 'Build parallelism: "auto" (use nproc), number (e.g., "8"), or "BB=4,MAKE=8"'
+    required: false
+    default: 'auto'
+
+  # License and environment
+  accept_licenses:
+    description: 'Space-separated list of licenses to accept (sets ACCEPT_LICENSE)'
+    required: false
+    default: ''
+  
+  extra_env:
+    description: 'Additional environment variables (multiline KEY=VALUE format)'
+    required: false
+    default: ''
+
+outputs:
+  image_dir:
+    description: 'Path to built images directory (build/tmp/deploy/images)'
+  
+  build_dir:
+    description: 'Path to build directory'
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
