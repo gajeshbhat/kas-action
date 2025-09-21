@@ -1,0 +1,41 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  integration:
+    name: Integration tests (dump, checkout, noexec build)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Smoke test - kas dump (config-only)
+        uses: ./
+        with:
+          kas_file: test/kas/config-only.yml
+          kas_cmd: dump
+
+      - name: Assert no build artifacts created
+        run: bash test/scripts/assert_no_build_artifacts.sh
+
+      - name: Checkout repos (minimal)
+        uses: ./
+        with:
+          kas_file: test/kas/minimal.yml
+          kas_cmd: checkout
+
+      - name: No-exec build graph (minimal)
+        uses: ./
+        with:
+          kas_file: test/kas/minimal.yml
+          kas_cmd: build
+          bitbake_args: "-n"
+
+      - name: Assert build created and no images
+        run: bash test/scripts/assert_build_created_no_images.sh
+

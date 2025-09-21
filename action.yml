@@ -49,14 +49,9 @@ inputs:
     required: false
     default: 'auto'
 
-  # License and environment
+  # License acceptance
   accept_licenses:
     description: 'Space-separated list of licenses to accept (sets ACCEPT_LICENSE)'
-    required: false
-    default: ''
-  
-  extra_env:
-    description: 'Additional environment variables (multiline KEY=VALUE format)'
     required: false
     default: ''
 

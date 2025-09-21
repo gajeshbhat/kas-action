@@ -1,0 +1,45 @@
+name: Minimal Yocto Build
+
+on:
+  # Manual trigger to avoid heavy builds on every PR
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build core-image-minimal (self-hosted)
+    runs-on: [self-hosted, linux, x64]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache downloads and sstate
+        uses: actions/cache@v4
+        with:
+          path: |
+            dl_cache
+            sstate_cache
+          key: yocto-${{ hashFiles('test/kas/minimal.yml') }}-${{ runner.os }}-${{ runner.arch }}
+          restore-keys: |
+            yocto-${{ hashFiles('test/kas/minimal.yml') }}-
+            yocto-
+
+      - name: Build minimal image
+        uses: ./
+        with:
+          kas_file: test/kas/minimal.yml
+          kas_cmd: build
+          dl_dir: dl_cache
+          sstate_dir: sstate_cache
+          parallelism: auto
+
+      - name: Assert images exist
+        run: bash test/scripts/assert_images_exist.sh
+
+      - name: Upload images
+        uses: actions/upload-artifact@v4
+        with:
+          name: yocto-images
+          path: build/tmp/deploy/images
+          if-no-files-found: error
+          retention-days: 7
+

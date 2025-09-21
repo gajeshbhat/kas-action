@@ -6,6 +6,7 @@ downloads/
 dl_cache/
 sstate_cache/
 cache/
+poky/
 
 # Common cache directories
 .cache/

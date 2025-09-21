@@ -32,25 +32,24 @@ log_error() {
 # Parse GitHub Action inputs (GitHub passes inputs as INPUT_* environment variables)
 parse_inputs() {
     log_info "Parsing action inputs..."
-    
+
     # Required inputs
     KAS_FILE="${INPUT_KAS_FILE:?kas_file input is required}"
-    
+
     # Optional inputs with defaults
     KAS_TAG="${INPUT_KAS_TAG:-latest}"
     KAS_CMD="${INPUT_KAS_CMD:-build}"
     KAS_ARGS="${INPUT_KAS_ARGS:-}"
     BITBAKE_ARGS="${INPUT_BITBAKE_ARGS:-}"
-    
+
     # Caching configuration
     DL_DIR="${INPUT_DL_DIR:-dl_cache}"
     SSTATE_DIR="${INPUT_SSTATE_DIR:-sstate_cache}"
-    
+
     # Build optimization
     PARALLELISM="${INPUT_PARALLELISM:-auto}"
     ACCEPT_LICENSES="${INPUT_ACCEPT_LICENSES:-}"
-    EXTRA_ENV="${INPUT_EXTRA_ENV:-}"
-    
+
     log_info "Using kas command: ${KAS_CMD}"
     log_info "Using kas files: ${KAS_FILE}"
     log_info "Using kas tag: ${KAS_TAG}"
@@ -59,28 +58,31 @@ parse_inputs() {
 # Set up build environment
 setup_environment() {
     log_info "Setting up build environment..."
-    
+
     # Set up caching directories (relative to GITHUB_WORKSPACE)
     export DL_DIR="${GITHUB_WORKSPACE}/${DL_DIR}"
     export SSTATE_DIR="${GITHUB_WORKSPACE}/${SSTATE_DIR}"
-    
+
     log_info "DL_DIR: ${DL_DIR}"
     log_info "SSTATE_DIR: ${SSTATE_DIR}"
-    
-    # Create cache directories if they don't exist
+
+    # Create cache directories
     mkdir -p "${DL_DIR}" "${SSTATE_DIR}"
-    
+
+    # Ensure builder owns caches when running as root
+    if [[ "$(whoami)" == "root" ]]; then
+        chown -R builder:builder "${DL_DIR}" "${SSTATE_DIR}" || true
+    fi
+
     # Configure parallelism
     setup_parallelism
-    
+
     # Set up license acceptance
     if [[ -n "${ACCEPT_LICENSES}" ]]; then
         export ACCEPT_LICENSE="${ACCEPT_LICENSES}"
         log_info "Accepting licenses: ${ACCEPT_LICENSES}"
     fi
-    
-    # Process extra environment variables
-    setup_extra_env
+
 }
 
 # Configure build parallelism
@@ -108,55 +110,45 @@ setup_parallelism() {
     fi
 }
 
-# Process extra environment variables
-setup_extra_env() {
-    if [[ -n "${EXTRA_ENV}" ]]; then
-        log_info "Processing extra environment variables..."
-        while IFS= read -r line; do
-            # Skip empty lines and comments
-            [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
-            
-            # Validate KEY=VALUE format
-            if [[ "$line" =~ ^[A-Za-z_][A-Za-z0-9_]*=.* ]]; then
-                export "$line"
-                log_info "Set: $line"
-            else
-                log_warning "Skipping invalid environment variable: $line"
-            fi
-        done <<< "${EXTRA_ENV}"
-    fi
-}
 
 # Build and execute kas command
 execute_kas() {
     log_info "Building kas command..."
-    
+
     # Start with base kas command
     local kas_command="kas ${KAS_CMD}"
-    
+
     # Add kas arguments if provided
     if [[ -n "${KAS_ARGS}" ]]; then
         kas_command="${kas_command} ${KAS_ARGS}"
     fi
-    
+
     # Add kas files
     kas_command="${kas_command} ${KAS_FILE}"
-    
+
     # Add bitbake arguments for build/shell commands
     if [[ "${KAS_CMD}" == "build" || "${KAS_CMD}" == "shell" ]] && [[ -n "${BITBAKE_ARGS}" ]]; then
         kas_command="${kas_command} -- ${BITBAKE_ARGS}"
     fi
-    
+
     log_info "Executing: ${kas_command}"
     echo "::group::Kas Command Output"
-    
-    # Execute kas command
-    if eval "${kas_command}"; then
-        echo "::endgroup::"
+
+    # Execute kas command with better error capture
+    set +e  # Temporarily disable exit on error to capture output
+    if [[ "$(id -u)" -eq 0 ]]; then
+        gosu builder bash -lc "${kas_command}" 2>&1
+    else
+        eval "${kas_command}" 2>&1
+    fi
+    local exit_code=$?
+    set -e  # Re-enable exit on error
+
+    echo "::endgroup::"
+
+    if [[ ${exit_code} -eq 0 ]]; then
         log_success "Kas command completed successfully"
     else
-        local exit_code=$?
-        echo "::endgroup::"
         log_error "Kas command failed with exit code: ${exit_code}"
         exit ${exit_code}
     fi
@@ -165,7 +157,7 @@ execute_kas() {
 # Set GitHub Action outputs
 set_outputs() {
     log_info "Setting action outputs..."
-    
+
     # Find and set image directory output
     if [[ -d "build/tmp/deploy/images" ]]; then
         local image_dir
@@ -175,7 +167,7 @@ set_outputs() {
     else
         log_warning "No images directory found at build/tmp/deploy/images"
     fi
-    
+
     # Set build directory output
     if [[ -d "build" ]]; then
         local build_dir
@@ -188,6 +180,13 @@ set_outputs() {
 # Main execution
 main() {
     log_info "Starting Kas Action..."
+
+    # Fix workspace permissions for GitHub Actions
+    # GitHub Actions mounts workspace with different ownership than container user
+    if [[ "$(whoami)" == "root" ]]; then
+        log_info "Running as root, adjusting workspace permissions..."
+        chown -R builder:builder "${GITHUB_WORKSPACE}" || true
+    fi
 
     # Change to workspace directory
     cd "${GITHUB_WORKSPACE}" || {

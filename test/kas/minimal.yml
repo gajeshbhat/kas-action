@@ -5,8 +5,10 @@ machine: qemux86-64
 distro: poky
 target: core-image-minimal
 
+# Minimal test configuration for CI
+# Uses a stable Yocto LTS release (kirkstone) for reliable testing
 repos:
-  poky:
+  poky-test:
     url: https://git.yoctoproject.org/poky
     branch: kirkstone
     layers:

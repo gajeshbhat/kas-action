@@ -2,31 +2,11 @@
 ARG KAS_TAG=latest
 FROM ghcr.io/siemens/kas/kas:${KAS_TAG}
 
-# Switch to root to install packages
+# Switch to root for configuration
+# hadolint ignore=DL3002
 USER root
 
-# Install additional tools commonly needed by Yocto layers
-# - git: Version control operations
-# - openssh-client: SSH access for private repositories
-# - ca-certificates: SSL/TLS certificate validation
-# - xz-utils: Compression/decompression
-# - file: File type detection
-# - locales: Locale support for builds
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    openssh-client \
-    ca-certificates \
-    xz-utils \
-    file \
-    locales \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
-
-# Generate common locales to avoid build warnings
-RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
-    locale-gen
-
-# Set default locale
+# Set locale environment variables (base image already has en_US.UTF-8 configured)
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
@@ -37,8 +17,8 @@ COPY entrypoint.sh /entrypoint.sh
 # Make entrypoint executable
 RUN chmod +x /entrypoint.sh
 
-# Switch back to builder user (kas default)
-USER builder
+# Run as root to handle GitHub Actions workspace permissions
+# The entrypoint will drop privileges to builder user for kas execution
 
 # Set entrypoint
 ENTRYPOINT ["/entrypoint.sh"]

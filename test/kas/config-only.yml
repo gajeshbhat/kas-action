@@ -1,0 +1,10 @@
+header:
+  version: 14
+
+machine: qemux86-64
+distro: poky
+target: core-image-minimal
+
+# Configuration-only test file
+# This validates kas configuration parsing without repository operations
+# Used for testing kas dump command in CI environments
