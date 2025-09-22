@@ -1,6 +1,6 @@
 # Kas Action
 
-[![CI Checks](https://github.com/gajeshbhatbhat/kas-action/actions/workflows/ci.yml/badge.svg)](https://github.com/gajeshbhatbhat/kas-action/actions/workflows/ci.yml) [![Integration Tests](https://github.com/gajeshbhatbhat/kas-action/actions/workflows/tests.yml/badge.svg)](https://github.com/gajeshbhatbhat/kas-action/actions/workflows/tests.yml)
+[![CI Checks](https://github.com/gajeshbhat/kas-action/actions/workflows/ci.yml/badge.svg)](https://github.com/gajeshbhat/kas-action/actions/workflows/ci.yml) [![Integration Tests](https://github.com/gajeshbhat/kas-action/actions/workflows/tests.yml/badge.svg)](https://github.com/gajeshbhat/kas-action/actions/workflows/tests.yml)
 
 A thin wrapper around [Siemens kas](https://kas.readthedocs.io/) to build Yocto/OpenEmbedded projects with optimized caching and CI integration.
 
@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build with kas
-        uses: gajeshbhatbhat/kas-action@v1
+        uses: gajeshbhat/kas-action@v1
         with:
           kas_file: kas.yml
 ```
@@ -37,7 +37,7 @@ jobs:
           restore-keys: yocto-cache-
 
       - name: Build with kas
-        uses: gajeshbhatbhat/kas-action@v1
+        uses: gajeshbhat/kas-action@v1
         with:
           kas_file: kas.yml
           dl_dir: dl_cache
