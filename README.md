@@ -204,4 +204,4 @@ df -h
 ## Support
 
 - Documentation: https://kas.readthedocs.io/
-- Report issues: https://github.com/gajesh/kas-action/issues
+- Report issues: https://github.com/gajeshbhat/kas-action/issues
