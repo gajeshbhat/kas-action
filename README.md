@@ -195,13 +195,12 @@ df -h
     kas_file: kas.yml
     kas_cmd: dump
 ```
+## Support
 
+- Documentation for Kas: https://kas.readthedocs.io/
+- Report issues with this action: https://github.com/gajeshbhat/kas-action/issues
 
 ## License
 
 [MIT](LICENSE) - same as kas project
 
-## Support
-
-- Documentation: https://kas.readthedocs.io/
-- Report issues: https://github.com/gajeshbhatbhat/kas-action/issues
