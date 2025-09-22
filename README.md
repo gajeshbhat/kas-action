@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build with kas
-        uses: gajeshbhat/kas-action@v1
+        uses: gajeshbhat/kas-action@v1.0.0
         with:
           kas_file: kas.yml
 ```
@@ -37,7 +37,7 @@ jobs:
           restore-keys: yocto-cache-
 
       - name: Build with kas
-        uses: gajeshbhat/kas-action@v1
+        uses: gajeshbhat/kas-action@v1.0.0
         with:
           kas_file: kas.yml
           dl_dir: dl_cache
@@ -82,7 +82,7 @@ strategy:
     kas_file: [kas/qemux86-64.yml, kas/raspberrypi4-64.yml]
 
 steps:
-  - uses: gajeshbhat/kas-action@v1
+  - uses: gajeshbhat/kas-action@v1.0.0
     with:
       kas_file: ${{ matrix.kas_file }}
 ```
@@ -98,7 +98,7 @@ steps:
 - name: Add known hosts
   run: ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-- uses: gajeshbhat/kas-action@v1
+- uses: gajeshbhat/kas-action@v1.0.0
   with:
     kas_file: kas.yml
     accept_licenses: "commercial proprietary"
@@ -107,7 +107,7 @@ steps:
 ### SDK Generation
 
 ```yaml
-- uses: gajeshbhat/kas-action@v1
+- uses: gajeshbhat/kas-action@v1.0.0
   with:
     kas_file: kas.yml
     bitbake_args: "-c populate_sdk core-image-minimal"
@@ -166,7 +166,7 @@ df -h
 **Build is very slow**
 ```yaml
 # Increase parallelism
-- uses: gajeshbhat/kas-action@v1
+- uses: gajeshbhat/kas-action@v1.0.0
   with:
     parallelism: "16"  # or "BB=8,MAKE=16"
 ```
@@ -177,20 +177,20 @@ df -h
 
 ```yaml
 # Checkout repositories only
-- uses: gajeshbhat/kas-action@v1
+- uses: gajeshbhat/kas-action@v1.0.0
   with:
     kas_file: kas.yml
     kas_cmd: checkout
 
 # Interactive shell (for debugging)
-- uses: gajeshbhat/kas-action@v1
+- uses: gajeshbhat/kas-action@v1.0.0
   with:
     kas_file: kas.yml
     kas_cmd: shell
     kas_args: "--keep-config-unchanged"
 
 # Dump configuration
-- uses: gajeshbhat/kas-action@v1
+- uses: gajeshbhat/kas-action@v1.0.0
   with:
     kas_file: kas.yml
     kas_cmd: dump
